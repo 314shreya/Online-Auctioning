@@ -1,0 +1,34 @@
+create table users(name varchar(50), password varchar(50),email varchar(50), phone varchar(10), address varchar(50), logged_in varchar(5), is_active varchar(5), PRIMARY KEY(email));
+
+-- create table item(item_id int not null auto_increment, item_name varchar(255), type varchar(255), color varchar(20), manufacturer varchar(20), fuel_type varchar(20), passangers varchar(20), mileage varchar(20), is_active tinyint(1), create_time timestamp, primary key (item_id));
+
+create table item(item_id int not null auto_increment, item_name varchar(255), type varchar(255), color varchar(20), manufacturer varchar(20) default null, fuel_type varchar(20) default null, passengers INT default 4, mileage double, is_active tinyint(1), create_time timestamp, primary key (item_id));
+
+create table auction(auction_id int not null auto_increment, starting_cost double, next_bid_lower_bound double,
+ highest_price double, end_date date, create_time timestamp, current_price double, latest_time timestamp,
+ latest_bid_by varchar(50) DEFAULT NULL, ADD FOREIGN KEY (latest_bid_by) REFERENCES users(email) ON DELETE CASCADE ON UPDATE CASCADE
+ is_active tinyint(1), primary key(auction_id));
+
+create table created_auction(item_id int not null,auction_id int not null, primary key(item_id, auction_id), FOREIGN KEY (item_id) REFERENCES item (item_id), FOREIGN KEY (auction_id) REFERENCES auction (auction_id) ON DELETE CASCADE ON UPDATE CASCADE);
+
+create table makes(email varchar(50), auction_id int not null, primary key(auction_id), FOREIGN KEY (auction_id) REFERENCES auction(auction_id) ON DELETE CASCADE ON UPDATE CASCADE, FOREIGN KEY (email) REFERENCES users (email) ON DELETE CASCADE);
+
+create table auction_bids(bid_id int not null auto_increment, bid_time timestamp, email varchar(50), auction_id int not null, bid_value double, PRIMARY KEY(bid_id),FOREIGN KEY(email) REFERENCES users(email) ON DELETE CASCADE, FOREIGN KEY(auction_id) REFERENCES auction(auction_id) ON DELETE CASCADE ON UPDATE CASCADE);
+
+create table bid_logs(log_id int not null auto_increment,email varchar(50) not null,auction_id int not null,bid_value double,PRIMARY KEY(log_id),FOREIGN KEY(email) REFERENCES users(email), FOREIGN KEY(auction_id) REFERENCES auction(auction_id) ON DELETE CASCADE ON UPDATE CASCADE);
+
+ALTER TABLE users ADD COLUMN is_admin INT(1) NOT NULL DEFAULT 0;
+ 
+create table question(question_id int not null auto_increment, primary key(question_id), answer varchar(255), question_description varchar(255), email varchar(50), FOREIGN KEY (email) REFERENCES users (email) ON DELETE CASCADE);
+
+create table customer_representative(custrep_email varchar(50) not null, password varchar(50), logged_in varchar(5), primary key (custrep_email));
+
+create table answer(question_id int not null, custrep_email varchar(50), primary key(question_id), foreign key(question_id) references question(question_id), foreign key (custrep_email) references users(email));
+
+create table auto_bids(email varchar(50) not null, auction_id int not null, upper_bound double, bid_increment double, primary key(email, auction_id), foreign key(email) references users(email) ON DELETE CASCADE, foreign key(auction_id) references auction(auction_id) ON DELETE CASCADE ON UPDATE CASCADE);
+
+ALTER TABLE auction ADD COLUMN latest_bid_by varchar(50) DEFAULT NULL, ADD FOREIGN KEY (latest_bid_by) REFERENCES users(email) ON DELETE CASCADE ON UPDATE CASCADE;
+
+create table creates_alert(alert_id int not null auto_increment, create_time timestamp, user_email varchar(50), primary key(alert_id), foreign key( user_email ) references users(email));
+
+create table alert_created_on(alert_id int , item_id int, primary key(alert_id , item_id), foreign key (alert_id) references creates_alert(alert_id), foreign key (item_id) references item(item_id));

@@ -1,0 +1,46 @@
+select item.item_name as item_name, item.type as item_type, auction.starting_cost as auction_start_cost, auction.highest_price as auction_high_price, auction.next_bid_lower_bound as auction_lower_bound, auction.create_time as auction_create_time, auction.end_date as auction_end_date, auction.is_active as auction_active, auction_bids.email as auction_bids_email, auction_bids.bid_value as auction_bid_value from item join created_auction on item.item_id = created_auction.item_id join auction on created_auction.auction_id = auction.auction_id join auction_bids on auction_bids.auction_id = auction.auction_id;
+
+
+
+<div style="margin-top:20px; margin-bottom:20px;">
+	<form action="" method="get" onsubmit="submit_sort_criteria()">
+	   	<label for="sort_criteria">Sort by different criteria: </label>
+	    <select name="sort_criteria" id="sort_criteria" style="width: 70%;">
+	    <%
+			Class.forName("com.mysql.jdbc.Driver");
+			con = DriverManager.getConnection(Credentials.url, Credentials.username, Credentials.password);
+			PreparedStatement pst_n = con.prepareStatement("select distinct item.type as type, item.item_name as name, created_auction.auction_id as auction_id, if(auction.end_date > auction.create_time, \"Closed\", \"Open\") as Status from item INNER JOIN created_auction ON created_auction.item_id = item.item_id join auction on auction.auction_id = created_auction.auction_id");
+			ResultSet rs_n = pst_n.executeQuery();
+			while (rs_n.next())
+			{
+				out.println("<option>" +rs_n.getString("type")+" "+ rs_n.getString("name")+" " + rs_n.getString("auction_id") + "</option>");
+			}
+		%>
+	    </select>
+	    <button type="submit" style="width: 10%;">Submit</button>
+	</form>
+	<input type="hidden" id="sort_criteria_inp" value="" style="width:100%">
+</div>
+
+
+function submit_sort_criteria()
+    {
+        /* event.preventDefault(); */
+        <%
+        String status_of_current_bid = request.getParameter("status_of_current_bid");
+        String status = "";
+        System.out.println(status_of_current_bid);
+        pst_n = con.prepareStatement("select distinct item.type as type, item.item_name as name, created_auction.auction_id as auction_id, if(auction.end_date > auction.create_time, \"Closed\", \"Open\") as Status from item INNER JOIN created_auction ON created_auction.item_id = item.item_id join auction on auction.auction_id = created_auction.auction_id where created_auction.auction_id = "+status_of_current_bid);
+        rs_n = pst_n.executeQuery();
+        if (rs_n.next())
+        {
+            status = rs_n.getString("Status");
+        }
+        %>
+        var status_bid = "<%= status %>";
+        var status_of_current_bid = "<%= status_of_current_bid%>";
+        if (status_of_current_bid != "")
+        {
+            alert("Status for the selected bid is : "+ status_of_current_bid);
+        }
+    }
